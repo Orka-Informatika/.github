@@ -1,0 +1,111 @@
+name: ORKA issue priority
+
+on:
+  workflow_call:
+
+permissions:
+  issues: write
+
+jobs:
+  priority:
+    if: github.event_name == 'issues' && contains(fromJSON('["opened","edited"]'), github.event.action)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: orka-issue-priority-${{ github.repository }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Apply the current issue's priority
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // The issue body is authoritative, including when an older event is queued.
+            // Policy inherited from the original workflow: retain ONLY its priority label.
+            // This workflow does not create or update any GitHub Projects fields.
+            const priorityLabels = {
+              '4P': { color: 'd3f0a0', description: 'Trivialna prioriteta' },
+              '3P': { color: '84b6eb', description: 'Redna prioriteta' },
+              '2P': { color: 'f9a86d', description: 'Visoka prioriteta' },
+              '1P': { color: 'e11d48', description: 'Ekspresna prioriteta' },
+            };
+
+            function parsePriority(body) {
+              if (typeof body !== 'string') return null;
+              const sections = [];
+              let section = null;
+              let fence = null;
+              for (const line of body.replace(/\r\n?/g, '\n').split('\n')) {
+                if (!fence && /^#{1,6}[ \t]+/.test(line)) {
+                  if (/^### Prioriteta[ \t]*$/.test(line)) {
+                    section = [];
+                    sections.push(section);
+                  } else {
+                    section = null;
+                  }
+                  continue;
+                }
+                if (section) section.push(line);
+                const marker = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+                if (!marker) continue;
+                if (!fence) {
+                  fence = { character: marker[1][0], length: marker[1].length };
+                } else if (marker[1][0] === fence.character && marker[1].length >= fence.length && !marker[2].trim()) {
+                  fence = null;
+                }
+              }
+              if (sections.length !== 1) return null;
+              const priority = sections[0].join('\n').trim();
+              return Object.hasOwn(priorityLabels, priority) ? priority : null;
+            }
+
+            const issueNumber = context.payload.issue?.number;
+            if (!Number.isSafeInteger(issueNumber) || issueNumber <= 0) {
+              throw new Error('A valid issue event is required.');
+            }
+            const repo = { owner: context.repo.owner, repo: context.repo.repo };
+            const issue = { ...repo, issue_number: issueNumber };
+
+            async function ensureLabel(priority) {
+              const label = { ...repo, name: priority };
+              try {
+                await github.rest.issues.getLabel(label);
+                return;
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+              try {
+                await github.rest.issues.createLabel({ ...label, ...priorityLabels[priority] });
+              } catch (error) {
+                if (error.status !== 422) throw error;
+                // Another issue may have created the repository label concurrently.
+                // A generic validation failure is not sufficient evidence of success.
+                await github.rest.issues.getLabel(label);
+              }
+            }
+
+            for (let attempt = 0; attempt < 3; attempt++) {
+              const { data: currentIssue } = await github.rest.issues.get(issue);
+              const priority = parsePriority(currentIssue.body);
+              if (!priority) {
+                core.info('Missing or malformed Prioriteta section; leaving labels unchanged.');
+                return;
+              }
+              await ensureLabel(priority);
+              const labels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
+                ...issue,
+                per_page: 100,
+              });
+              // Recheck after the API reads to avoid applying an edit that was superseded.
+              const { data: latestIssue } = await github.rest.issues.get(issue);
+              if (parsePriority(latestIssue.body) !== priority) continue;
+              if (labels.length === 1 && labels[0].name === priority) {
+                core.info(`Issue #${issueNumber} already has only ${priority}.`);
+                return;
+              }
+              // One atomic replacement intentionally removes ALL non-priority labels.
+              // Do not suppress errors: a failed update must fail the workflow.
+              await github.rest.issues.setLabels({ ...issue, labels: [priority] });
+              core.info(`Issue #${issueNumber}: retained only ${priority}.`);
+              return;
+            }
+            throw new Error('Issue priority kept changing during this run; retry after editing is complete.');
