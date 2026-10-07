@@ -1,0 +1,16 @@
+# Deployment template only. Substitute the reviewed reusable-workflow commit SHA.
+# Install as .github/workflows/orka-issue-priority.yml and remove the obsolete
+# label-priority.yml and sync-project-priority.yml in the same PR after reviewing
+# repository exceptions.
+name: Label Issues by Priority
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  priority:
+    uses: Orka-Informatika/.github/.github/workflows/issue-priority.yml@__WORKFLOW_COMMIT_SHA__

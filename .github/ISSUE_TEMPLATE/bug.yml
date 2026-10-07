@@ -1,0 +1,50 @@
+name: Napaka (Bug)
+description: Izpolni poročilo o Bugu
+type: Bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Opis
+      description: "Jasen opis za kakšno stvar se gre."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Koraki in pogoji za ponovitev
+      value: |
+        1.
+        2.
+        3.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Pričakovano
+      description: "Kaj bi se moralo zgoditi (Pravilno obnašanje)"
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Dejansko
+      description: "Kaj se dejansko zgodi (Napačno obnašanje)"
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioriteta
+      options:
+        - 4P
+        - 3P
+        - 2P
+        - 1P
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Dodatni viri
+      description: "Vsi relevantni logi, slike, posnetki, ipd."

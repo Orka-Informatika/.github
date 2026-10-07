@@ -1,0 +1,36 @@
+name: Naloga
+description: Predloga za Nalogo po agilni metodologiji
+type: Task
+body:
+  - type: textarea
+    id: user-story
+    attributes:
+      label: Opis
+      description: "Kaj mora biti narejeno"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Merila sprejemljivosti
+      description: "Kdaj je naloga dokončana? Naštej pogoje, ki morajo biti izpolnjeni."
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioriteta
+      description: "1P - najvišja, 4P - najnižja"
+      options:
+        - 4P
+        - 3P
+        - 2P
+        - 1P
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Dodatne opombe
+      description: "Skice, povezave, kontekst ali drugi relevantni viri"
