@@ -14,12 +14,12 @@ body:
     id: priority
     attributes:
       label: Prioriteta
-      description: "1P - najvišja, 4P - najnižja"
+      description: "P1 - najvišja, P4 - najnižja"
       options:
         - 4P
         - 3P
         - 2P
-        - 1P
+        - 1P 
     validations:
       required: true
 
