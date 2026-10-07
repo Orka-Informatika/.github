@@ -1,4 +1,4 @@
-name: Napaka (Bug)
+name: Bug
 description: Izpolni poročilo o Bugu
 type: Bug
 body:
@@ -15,8 +15,8 @@ body:
     attributes:
       label: Koraki in pogoji za ponovitev
       value: |
-        1.
-        2.
+        1. 
+        2. 
         3.
 
   - type: textarea

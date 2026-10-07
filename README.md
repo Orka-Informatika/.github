@@ -1,6 +1,6 @@
 # Skupni ORKA obrazci in prioritete
 
-Mapa `.github/ISSUE_TEMPLATE/` vsebuje skupne obrazce Napaka (Bug), Naloga in
+Mapa `.github/ISSUE_TEMPLATE/` vsebuje skupne obrazce Bug, Naloga in
 Funkcionalnost. GitHub jih ponudi repozitorijem organizacije, ki nimajo svojih
 veljavnih obrazcev ali konfiguracije v `.github/ISSUE_TEMPLATE/`.
 Lokalni in skupni obrazci se ne združujejo.
