@@ -23,9 +23,9 @@ Prioriteta na projektni tabli je oznaka same naloge. Dodatno polje Projects,
 
 ## Vključitev repozitorija
 
-1. Objavimo in preverimo skupne obrazce ter ta workflow na privzeti veji.
-2. V `templates/issue-priority-caller.yml` nadomestimo
-   `__WORKFLOW_COMMIT_SHA__` s celotnim SHA pregledanega objavljenega commita.
+1. Skupne obrazce objavimo na privzeti veji `main`, pregledano različico
+   workflowa pa na izdajni veji `stable`.
+2. Uporabimo `templates/issue-priority-caller.yml`, ki kliče `@stable`.
 3. Datoteko dodamo ciljnemu repozitoriju kot
    `.github/workflows/orka-issue-priority.yml`.
 4. Če obstajata stara `label-priority.yml` in `sync-project-priority.yml`, ju
@@ -38,12 +38,36 @@ Prioriteta na projektni tabli je oznaka same naloge. Dodatno polje Projects,
    rezultat Actions in oznako naloge na projektni tabli.
 
 Actions morajo biti omogočeni in dovoljevati ta workflow ter uporabljeno
-akcijo. Pripetje na SHA pomeni, da je treba poznejšo spremembo skupnega
-workflowa vključiti tudi s posodobitvijo SHA v klicnih datotekah.
+akcijo. Običajne popravke logike pregledamo in preverimo enkrat ter objavimo
+na veji `stable`. Vsi klici `@stable` jih uporabljajo pri naslednjem novem
+zagonu, brez sprememb datotek v posameznih repozitorijih. Spremembe
+sprožilcev, dovoljenj ali vmesnika klica lahko še vedno zahtevajo spremembo
+klicnih datotek.
 
 Novi repozitoriji lahko skupne obrazce dedujejo samodejno. Klicne datoteke
-workflowov se ne dedujejo. Doda jih predloga repozitorija ob njegovi izdelavi
-ali posebej nastavljena avtomatizacija. Ta sprememba takega robota ne namešča.
+workflowov se ne dedujejo. Robot ORKA Repository Automation, nastavljen v
+zasebnem repozitoriju `.github-private`, jih predlaga s PR-jem ob dnevnem
+pregledu po prvem commitu. Obdeluje primerne repozitorije z vključenimi Issues;
+arhivirane, prazne, izključene repozitorije in konflikte z lastnimi workflowi
+pusti brez sprememb. Lastni preverjeni PR lahko sam združi, ko to dovoljujejo
+obstoječe zaščite. Če je potreben pregled ali preverjanja še niso uspešna,
+PR ostane odprt. Obstoječih tujih PR-jev ne prevzame.
+
+## Objava naslednje različice
+
+1. Popravek skupnega workflowa pripravimo v veji iz `stable` in odpremo PR
+   proti `stable`. Obrazci ostajajo na `main` in se s to objavo ne spreminjajo.
+2. Zaženemo spodnje teste ter pregledamo spremembo in njene pravice.
+3. Po preverjanju združimo PR v `stable`. Ta veja je skupna izdaja za vse
+   vključene repozitorije; običajna sprememba na `main` je ne posodobi.
+4. V pilotnem repozitoriju preverimo izvajanje in nato rezultat spremljamo.
+   Če je potreben povratek, objavimo povrnitveni commit na `stable`, brez
+   prepisovanja zgodovine.
+
+Vejo `stable` upravljajo skrbniki organizacije enako kot privzeto vejo.
+Izdajni pregled opravljamo centralno, ker sprememba te veje vpliva na vse
+repozitorije, ki jo kličejo. Prvotni klici na posamezni SHA potrebujejo samo
+enkratno zamenjavo sklica z `@stable`.
 
 ## Lokalno preverjanje
 
